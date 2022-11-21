@@ -10,8 +10,11 @@ spring:
     username: root
     password: 2568898559yY
 
+  #session失效时间
+  session:
+    timeout: 86400
 server:
-  port: 8081
+  port: 9998
 
 mybatis-plus:
   configuration:
