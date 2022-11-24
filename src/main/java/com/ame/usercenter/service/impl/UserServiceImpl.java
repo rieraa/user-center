@@ -127,7 +127,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //3. 用户脱敏
         User safetyUser = getSafetyUser(user);
         // 4. 记录用户的登录态
-        //
+        //session 将用户的数据存储在session会话中 将safetyUser存储在session中 名称为USER_LOGIN_STATE
+        //可以通过request.getSession().getAttribute()取出当前session的客户端数据 来分辨是哪位用户进行登录
+        //USER_LOGIN_STATE 的作用就是 若用户进行了登录操作 其session中就会存放对应的内容 若通过上方方法getAttribute时 若没有数据
+        //就能判断当前用户未登录
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
         return safetyUser;
 
@@ -136,11 +139,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 用户脱敏
+     *
      * @param originUser
      * @return
      */
     @Override
     public User getSafetyUser(User originUser) {
+        if (originUser == null) {
+            return null;
+        }
         User safetyUser = new User();
         safetyUser.setId(originUser.getId());
         safetyUser.setUsername(originUser.getUsername());

@@ -64,10 +64,27 @@ public class UserController {
 
     }
 
+    @GetMapping("/current")
+    public User getCurrentUser(HttpServletRequest request) {
+        //从用户的登录请求中取得Session
+        //Session 作为用户登录过的一个凭据
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null) {
+            return null;
+        }
+        //由于用户的信息可能更新 session中存储的信息过时 所以这里选择查库 重新返回一个用户的信息
+        Long userId = currentUser.getId();
+        User user = userService.getById(userId);
+        //返回脱敏后的数据
+        //todo 校验用户是否可发
+        return userService.getSafetyUser(user);
+
+    }
+
     @GetMapping("/search")
     public List<User> searchUsers(String username, HttpServletRequest request) {
         if (!isAdmin(request)) {
-            System.out.print("不是管理员");
             return new ArrayList<>();
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
