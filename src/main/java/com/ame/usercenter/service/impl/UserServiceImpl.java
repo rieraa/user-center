@@ -1,5 +1,7 @@
 package com.ame.usercenter.service.impl;
 
+import com.ame.usercenter.common.ErrorCode;
+import com.ame.usercenter.exception.BusinessException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ame.usercenter.model.domain.User;
@@ -36,18 +38,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private static final String SALT = "ame";
 
+    /**
+     * 用户注册
+     *
+     * @param userAccount   用户账户
+     * @param userPassword  用户密码
+     * @param checkPassword 用户校验码
+     * @param yuCode        编号
+     * @return
+     */
 
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String userAccount, String userPassword, String checkPassword, String yuCode) {
         // 1.校验
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return -1;
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, yuCode)) {
+//            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
+
+
         if (userAccount.length() < 4) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账户过短");
         }
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+        }
+        if (yuCode.length() > 5) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户编码过长");
         }
 
 
@@ -69,7 +86,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //this 就是UserServiceImpl 继承了所有的方法
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
+        }
+
+        // yuCode不能重复
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("yuCode", yuCode);
+        //this 就是UserServiceImpl 继承了所有的方法
+        count = userMapper.selectCount(queryWrapper);
+        if (count > 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "编号重复");
         }
 
 
@@ -81,6 +107,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
+        user.setYuCode(yuCode);
         boolean saveResult = this.save(user);
         if (!saveResult) {
             return -1;
@@ -88,6 +115,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return user.getId();
     }
 
+    /**
+     * 用户登录
+     *
+     * @param userAccount  用户账户
+     * @param userPassword 用户密码
+     * @param request      cookies
+     * @return
+     */
     @Override
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1.校验,
@@ -159,8 +194,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setPhone(originUser.getPhone());
         safetyUser.setCreateTime(originUser.getCreateTime());
+        safetyUser.setYuCode(originUser.getYuCode());
         return safetyUser;
     }
+
+    /**
+     * 用户注销
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        //移除用户的登录态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
+
+    }
+
+
 }
 
 

@@ -83,6 +83,12 @@ public class User implements Serializable {
      */
     private Integer userRole;
 
+    /**
+     * 用户编号（和其他平台绑定）
+     */
+    private String yuCode;
+
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }
