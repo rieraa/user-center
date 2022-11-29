@@ -47,7 +47,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param yuCode        编号
      * @return
      */
-
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword, String yuCode) {
         // 1.校验
@@ -167,8 +166,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //USER_LOGIN_STATE 的作用就是 若用户进行了登录操作 其session中就会存放对应的内容 若通过上方方法getAttribute时 若没有数据
         //就能判断当前用户未登录
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+
         return safetyUser;
 
+
+    }
+
+    /**
+     * 用户注销
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        //移除用户的登录态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
 
     }
 
@@ -196,20 +210,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         safetyUser.setCreateTime(originUser.getCreateTime());
         safetyUser.setYuCode(originUser.getYuCode());
         return safetyUser;
-    }
-
-    /**
-     * 用户注销
-     *
-     * @param request
-     * @return
-     */
-    @Override
-    public int userLogout(HttpServletRequest request) {
-        //移除用户的登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
-        return 1;
-
     }
 
 

@@ -82,9 +82,7 @@ public class UserController {
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
-
         }
-
         int result = userService.userLogout(request);
         return ResultUtils.success(result);
 
@@ -100,12 +98,14 @@ public class UserController {
         if (currentUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        //由于用户的信息可能更新 session中存储的信息过时 所以这里选择查库 重新返回一个用户的信息
+
+        //session中存储的信息可能被修改 所以这里选择查库 重新返回一个用户的信息
         Long userId = currentUser.getId();
         User user = userService.getById(userId);
         //返回脱敏后的数据
         //todo 校验用户是否合法
         User safetyUser = userService.getSafetyUser(user);
+//        if(currentUser.equals(safetyUser) )
         return ResultUtils.success(safetyUser);
 
     }
@@ -113,7 +113,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         if (!isAdmin(request)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 
