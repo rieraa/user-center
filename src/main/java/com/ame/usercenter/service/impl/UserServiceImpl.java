@@ -1,6 +1,7 @@
 package com.ame.usercenter.service.impl;
 
 import com.ame.usercenter.common.ErrorCode;
+import com.ame.usercenter.common.ResultUtils;
 import com.ame.usercenter.exception.BusinessException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,8 +15,10 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.ame.usercenter.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -157,7 +160,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return null;
         }
 
-
         //3. 用户脱敏
         User safetyUser = getSafetyUser(user);
         // 4. 记录用户的登录态
@@ -166,7 +168,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //USER_LOGIN_STATE 的作用就是 若用户进行了登录操作 其session中就会存放对应的内容 若通过上方方法getAttribute时 若没有数据
         //就能判断当前用户未登录
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-
         return safetyUser;
 
 
@@ -184,6 +185,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
 
+    }
+
+    /**
+     * author ame
+     *
+     * @param username
+     * @param request  测试用方法
+     * @return
+     */
+    @Override
+    public List<User> searchUsers(String username, HttpServletRequest request) {
+
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null) {
+           return null;
+        }
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        //判断字符串是否为空
+        //根据用户名进行查询
+        if (StringUtils.isNoneBlank(username)) {
+            queryWrapper.like("username", username);
+        }
+        List<User> userList = list(queryWrapper);
+        //遍历处理List<User>中的user
+        List<User> list = userList.stream().map(user -> getSafetyUser(user)).collect(Collectors.toList());
+        return list;
     }
 
     /**

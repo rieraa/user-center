@@ -4,6 +4,7 @@ import com.ame.usercenter.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 用户服务
@@ -48,4 +49,15 @@ public interface UserService extends IService<User> {
      * @return
      */
     int userLogout(HttpServletRequest request);
+
+
+    /**
+     * author ame
+     * @param username
+     * @param request
+     *
+     * 测试用方法
+     * @return
+     */
+    List<User> searchUsers(String username, HttpServletRequest request);
 }
